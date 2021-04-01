@@ -10,42 +10,42 @@ import Data.List
 
 startBlackjack :: IO ()
 startBlackjack = do
-    putStrLn "\n\nWelcome to 100% Bornholmsk Granit's Blackjack game!\n"
-    deck <- shuffleDeck
-    let (dHand, deck') = drawCards 2 deck
-    let dVisibleCard = [head dHand]
-    let (pHand, deck'') = drawCards 2 deck'
-    putStrLn $ "Dealer hand: " ++ show dVisibleCard ++ ", " ++ show (handScore dVisibleCard)
-    putStrLn $ "Your hand: " ++ show pHand ++ ", " ++ show (handScore pHand)
-    makeMove pHand dHand deck''
+  putStrLn "\n\nWelcome to 100% Bornholmsk Granit's Blackjack game!\n"
+  deck <- shuffleDeck
+  let (dHand, deck') = drawCards 2 deck
+  let dVisibleCard = [head dHand]
+  let (pHand, deck'') = drawCards 2 deck'
+  putStrLn $ "Dealer hand: " ++ show dVisibleCard ++ ", " ++ show (handScore dVisibleCard)
+  putStrLn $ "Your hand: " ++ show pHand ++ ", " ++ show (handScore pHand)
+  makeMove pHand dHand deck''
 
 currentHands :: Hand -> Hand -> Deck -> IO ()
 currentHands pHand dHand deck = do
-    putStrLn $ "\nDealer hand: " ++ show dHand ++ ", " ++ show (handScore dHand)
-    putStrLn $ "Your hand: " ++ show pHand ++ ", " ++ show (handScore pHand)
-    outcome pHand dHand
-    makeMove pHand dHand deck
+  putStrLn $ "\nDealer hand: " ++ show dHand ++ ", " ++ show (handScore dHand)
+  putStrLn $ "Your hand: " ++ show pHand ++ ", " ++ show (handScore pHand)
+  outcome pHand dHand
+  makeMove pHand dHand deck
 
 makeMove :: Hand -> Hand -> Deck -> IO ()
 makeMove pHand dHand deck = do
-    if handScore pHand == Value 21 then do
-      let (dNewHand, deck') = dealerNextMove dHand deck
-      currentHands pHand dNewHand deck'
-    else do
-      putStrLn "\nEnter 1 to hit or 2 to stand\n"
-      input <- getLine
-      let mNum = readMaybe input :: Maybe Int
-      case mNum of
-        Just number ->
-          if number == 1 then do
-            let (pNewHand, deck') = playerNextMove pHand deck number
-            currentHands pNewHand [head dHand] deck'
-            else if number == 2 then do
-              let (dNewHand, deck') = dealerNextMove dHand deck
-              currentHands pHand dNewHand deck'
-          else
-            makeMove pHand dHand deck
-        Nothing -> makeMove pHand dHand deck
+  if handScore pHand == Value 21 then do
+    let (dNewHand, deck') = dealerNextMove dHand deck
+    currentHands pHand dNewHand deck'
+  else do
+    putStrLn "\nEnter 1 to hit or 2 to stand\n"
+    input <- getLine
+    let mNum = readMaybe input :: Maybe Int
+    case mNum of
+      Just number ->
+        if number == 1 then do
+          let (pNewHand, deck') = playerNextMove pHand deck number
+          currentHands pNewHand [head dHand] deck'
+          else if number == 2 then do
+            let (dNewHand, deck') = dealerNextMove dHand deck
+            currentHands pHand dNewHand deck'
+        else
+          makeMove pHand dHand deck
+      Nothing -> makeMove pHand dHand deck
 
 outcome :: Hand -> Hand -> IO ()
 outcome pHand dHand
