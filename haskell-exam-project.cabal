@@ -1,0 +1,81 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 796120d8494c04b113bb43c699baed20090df66a970a9d8b006e3e954872e691
+
+name:           haskell-exam-project
+version:        0.0.0
+homepage:       https://github.com/githubuser/haskell-exam-project#readme
+bug-reports:    https://github.com/githubuser/haskell-exam-project/issues
+author:         Author name here
+maintainer:     Author name here
+license:        MIT
+build-type:     Simple
+extra-source-files:
+    CHANGELOG.md
+    LICENSE.md
+    package.yaml
+    README.md
+    stack.yaml
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/haskell-exam-project
+
+library
+  exposed-modules:
+    Card
+  other-modules:
+      Paths_haskell_exam_project
+  hs-source-dirs:
+      library
+  ghc-options: -Wall
+  build-depends:
+      base
+    , random
+  default-language: Haskell2010
+
+executable haskell-exam-project
+  main-is: Main.hs
+  other-modules:
+      Paths_haskell_exam_project
+  hs-source-dirs:
+      executable
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , haskell-exam-project
+    , random
+  default-language: Haskell2010
+
+test-suite haskell-exam-project-test-suite
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_haskell_exam_project
+  hs-source-dirs:
+      test-suite
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , haskell-exam-project
+    , tasty
+    , tasty-hspec
+  default-language: Haskell2010
+
+benchmark haskell-exam-project-benchmarks
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_haskell_exam_project
+  hs-source-dirs:
+      benchmark
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , criterion
+    , haskell-exam-project
+  default-language: Haskell2010
