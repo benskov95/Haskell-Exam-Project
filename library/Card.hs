@@ -43,6 +43,9 @@ splitDeck deck = do
   let secondDeck = drop ((length deck) `div` 2) deck
   (firstDeck, secondDeck)
 
+emptyDecks :: (Deck, Deck)
+emptyDecks = ([], [])
+
 drawCards :: Int -> Deck -> (Hand, Deck)
 drawCards number deck = (take number deck, drop number deck)
 

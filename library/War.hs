@@ -7,10 +7,8 @@ startWar = do
   putStrLn "\nWelcome to 100% Bornholmsk Granit's War game!"
   deck <- shuffleDeck
   let (pDeck, eDeck) = splitDeck deck
-  let (pCard, pDeck') = drawCards 1 pDeck
-  let (eCard, eDeck') = drawCards 1 eDeck
-  putStrLn $ "\nPlayer card: " ++ show pCard ++ ", value: " ++ cardValues pCard
-  putStrLn $ "Enemy card: " ++ show eCard ", value: " ++ cardValues eCard
+  let (pSideDeck, eSideDeck) = emptyDecks
+  startRound ((pDeck, pSideDeck), (eDeck, eSideDeck))
 
 cardValues :: Card -> Int
 cardValues Two   = 2
@@ -44,24 +42,43 @@ compareCardValues (pCard, eCard) =
 
 addToSideDeck :: WonCards -> SideDeck -> SideDeck
 addToSideDeck [] sDeck = sDeck
-addToSideDeck [card] = sDeck ++ card
-addToSideDeck [card:cards] = addToSideDeck cards sDeck
+addToSideDeck [card] sDeck = sDeck ++ [card]
+addToSideDeck [card:cards] sDeck = addToSideDeck cards sDeck
 
-round :: (PlayerDecks, PlayerDecks) -> IO ()
-round ((pDeck, pSideDeck), (eDeck, eSideDeck)) = do
+getStatus :: (PlayerDecks, PlayerDecks) -> (Card, Card) -> IO ()
+getStatus ((pDeck, pSideDeck), (eDeck, eSideDeck)) (pCard, eCard) = do
+    putStrLn $ ("\nPlayer card: " ++ show pCard ++
+                ", value: " ++ show (cardValues pCard) ++
+                "\nCards in deck: " ++ show (length pDeck) ++
+                "\nCards in side deck: " ++ show (length pSideDeck)
+                )
+
+    putStrLn $ ("\nEnemy card: " ++ show eCard ++
+                ", value: " ++ show (cardValues eCard) ++
+                "\nCards in deck: " ++ show (length eDeck) ++
+                "\nCards in side deck: " ++ show (length eSideDeck)
+                )
+
+startRound :: (PlayerDecks, PlayerDecks) -> IO ()
+startRound ((pDeck, pSideDeck), (eDeck, eSideDeck)) = do
     let (pCards, pDeck') = drawCards 1 pDeck
     let (eCards, eDeck') = drawCards 1 eDeck
     let pCard = head pCards
     let eCard = head eCards
     let roundResult = compareCardValues (pCard, eCard)
 
+    getStatus ((pDeck', pSideDeck), (eDeck', eSideDeck)) (pCard, eCard)
+
     if roundResult == Player then do
+      putStrLn "\nYou won this round!"
       let pSideDeck' = addToSideDeck [pCard, eCard] pSideDeck
-      round ((pDeck', pSideDeck'), (eDeck', eSideDeck))
+      startRound ((pDeck', pSideDeck'), (eDeck', eSideDeck))
     else if roundResult == Enemy then do
+      putStrLn "\nYou lost this round :("
       let eSideDeck' = addToSideDeck [pCard, eCard] eSideDeck
-      round ((pDeck', pSideDeck), (eDeck', eSideDeck'))
+      startRound ((pDeck', pSideDeck), (eDeck', eSideDeck'))
     else
+      putStrLn "\nWAR!"
       war ((pDeck', pSideDeck), (eDeck', eSideDeck))
 
 war :: (PlayerDecks, PlayerDecks) -> IO ()
@@ -72,17 +89,22 @@ war ((pDeck, pSideDeck), (eDeck, eSideDeck)) = do
     let eVisibleCard = last eCards
     let warResult = compareCardValues (pVisibleCard, eVisibleCard)
 
-    if roundResult == Player then do
+    getStatus ((pDeck', pSideDeck), (eDeck', eSideDeck)) (pVisibleCard, eVisibleCard)
+
+    if warResult == Player then do
+      putStrLn "\nYou won the war!"
       let pSideDeck' = addToSideDeck [pCards ++ eCards] pSideDeck
-      round ((pDeck', pSideDeck'), (eDeck', eSideDeck))
-    else if roundResult == Enemy then do
+      startRound ((pDeck', pSideDeck'), (eDeck', eSideDeck))
+    else if warResult == Enemy then do
+      putStrLn "\nYou lost the war :("
       let eSideDeck' = addToSideDeck [pCards ++ eCards] eSideDeck
-      round ((pDeck', pSideDeck), (eDeck', eSideDeck'))
+      startRound ((pDeck', pSideDeck), (eDeck', eSideDeck'))
     else
+      putStrLn "\nThe war continues!"
       continuedWar ((pDeck', pSideDeck), (eDeck', eSideDeck)) (pCards, eCards)
 
 continuedWar :: (PlayerDecks, PlayerDecks) -> (WonCards, WonCards) -> IO ()
-continuedWar ((pDeck, pSideDeck), (eDeck, eSideDeck)) (pCards, eCards) =
+continuedWar ((pDeck, pSideDeck), (eDeck, eSideDeck)) (pCards, eCards) = do
     let (pCards', pDeck') = drawCards 4 pDeck
     let (eCards', eDeck') = drawCards 4 eDeck
     let pVisibleCard = last pCards'
@@ -91,13 +113,18 @@ continuedWar ((pDeck, pSideDeck), (eDeck, eSideDeck)) (pCards, eCards) =
     let allECards = [eCards ++ eCards']
     let warResult = compareCardValues (pVisibleCard, eVisibleCard)
 
-    if roundResult == Player then do
+    getStatus ((pDeck', pSideDeck), (eDeck', eSideDeck)) (pVisibleCard, eVisibleCard)
+
+    if warResult == Player then do
+      putStrLn "\nYou won the war at last!"
       let pSideDeck' = addToSideDeck [allPCards ++ allECards] pSideDeck
-      round ((pDeck', pSideDeck'), (eDeck', eSideDeck))
-    else if roundResult == Enemy then do
+      startRound ((pDeck', pSideDeck'), (eDeck', eSideDeck))
+    else if warResult == Enemy then do
+      putStrLn "\nYou lost the war... what a shame."
       let eSideDeck' = addToSideDeck [allPCards ++ allECards] eSideDeck
-      round ((pDeck', pSideDeck), (eDeck', eSideDeck'))
+      startRound ((pDeck', pSideDeck), (eDeck', eSideDeck'))
     else
+      putStrLn "\nThe war just keeps on going..."
       continuedWar ((pDeck', pSideDeck), (eDeck', eSideDeck)) (allPCards, allECards)
 
 
