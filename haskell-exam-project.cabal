@@ -28,6 +28,8 @@ source-repository head
 library
   exposed-modules:
     Card
+    Blackjack
+    War
   other-modules:
       Paths_haskell_exam_project
   hs-source-dirs:

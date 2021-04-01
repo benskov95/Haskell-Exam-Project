@@ -54,51 +54,11 @@ shuffleDeck = shuffleCards [] fullDeck
 dealCards :: Int -> Deck -> (Hand, Deck)
 dealCards number deck = (take number deck, drop number deck)
 
-handIsBlackjack :: Hand -> Bool
-handIsBlackjack [card1, card2] =
-  ((card1 == Ace) && elem card2 [Ten, Jack, Queen, King]) ||
-  ((card2 == Ace) && elem card1 [Ten, Jack, Queen, King])
-handIsBlackjack _ = False
-
-handIsSoft :: Hand -> Bool
-handIsSoft hand = Ace `elem` hand
-
 possibleHandTotals :: Hand -> [Int] -> [Int] -- Value of an ace can vary depending on total value of hand at the time.
 possibleHandTotals [] totals = sort $ nub totals
 possibleHandTotals (card:cards) totals =
   possibleHandTotals cards newTotals
   where newTotals = [total + value | total <- totals, value <- cardValues card]
-
-data Score = Value Int | Blackjack | Bust deriving (Show, Ord, Eq)
-
-handScore :: Hand -> Score
-handScore hand
-  | null notBustTotals = Bust
-  | handIsBlackjack hand = Blackjack
-  | otherwise = Value (last notBustTotals)
-  where notBustTotals = filter (<= 21) $ possibleHandTotals hand [0]
-
-dealerNextMove :: Hand -> Deck -> (Hand, Deck)
-dealerNextMove hand deck
-  | score < Value 17 = hit hand deck
-  | score == Value 17 = if handIsSoft hand then hit hand deck else (hand, deck)
-  | otherwise = (hand, deck)
-  where score = handScore hand
-
-playerNextMove :: Hand -> Deck -> Int -> (Hand, Deck)
-playerNextMove hand deck choice
-  | choice == 1 = hit hand deck
-  | choice == 2 = (hand, deck)
-  | otherwise = (hand, deck)
-
-hit :: Hand -> Deck -> (Hand, Deck)
-hit hand deck = (newHand, newDeck) where
-  newHand = hand ++ [head deck]
-  newDeck = drop 1 deck
-
-
-
-
 
 
 
