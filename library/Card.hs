@@ -1,8 +1,6 @@
 module Card where
 
 import System.Random
-import Data.List
-import Text.Printf
 
 data Card
   = Ace
@@ -23,18 +21,6 @@ data Card
 type Hand = [Card]
 type Deck = [Card]
 
-cardValues :: Card -> [Int]
-cardValues Ace   = [1, 11]
-cardValues Two   = [2]
-cardValues Three = [3]
-cardValues Four  = [4]
-cardValues Five  = [5]
-cardValues Six   = [6]
-cardValues Seven = [7]
-cardValues Eight = [8]
-cardValues Nine  = [9]
-cardValues _     = [10]
-
 fullDeck :: Deck
 fullDeck = concat $ replicate 4 [Ace .. King]
 
@@ -51,15 +37,13 @@ shuffleCards shuffled unshuffled = do
 shuffleDeck :: IO Deck
 shuffleDeck = shuffleCards [] fullDeck
 
-dealCards :: Int -> Deck -> (Hand, Deck)
-dealCards number deck = (take number deck, drop number deck)
+splitDeck :: Deck -> (Deck, Deck)
+splitDeck deck = do
+  let firstDeck = take ((length deck) `div` 2) deck
+  let secondDeck = drop ((length deck) `div` 2) deck
+  (firstDeck, secondDeck)
 
-possibleHandTotals :: Hand -> [Int] -> [Int] -- Value of an ace can vary depending on total value of hand at the time.
-possibleHandTotals [] totals = sort $ nub totals
-possibleHandTotals (card:cards) totals =
-  possibleHandTotals cards newTotals
-  where newTotals = [total + value | total <- totals, value <- cardValues card]
-
-
+drawCards :: Int -> Deck -> (Hand, Deck)
+drawCards number deck = (take number deck, drop number deck)
 
 

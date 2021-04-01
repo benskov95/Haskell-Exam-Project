@@ -4,6 +4,7 @@ import Card
 
 import Text.Read
 import System.Exit (exitSuccess)
+import Data.List
 
 -- GAME
 
@@ -11,9 +12,9 @@ startBlackjack :: IO ()
 startBlackjack = do
     putStrLn "\n\nWelcome to 100% Bornholmsk Granit's Blackjack game!\n"
     deck <- shuffleDeck
-    let (dHand, deck') = dealCards 2 deck
+    let (dHand, deck') = drawCards 2 deck
     let dVisibleCard = [head dHand]
-    let (pHand, deck'') = dealCards 2 deck'
+    let (pHand, deck'') = drawCards 2 deck'
     putStrLn $ "Dealer hand: " ++ show dVisibleCard ++ ", " ++ show (handScore dVisibleCard)
     putStrLn $ "Your hand: " ++ show pHand ++ ", " ++ show (handScore pHand)
     makeMove pHand dHand deck''
@@ -87,9 +88,21 @@ playAgain = do
      exitSuccess
 
 askToStartAgain :: String
-askToStartAgain = "Would you like to play again? Press 1 for yes, anything else for no"
+askToStartAgain = "\nWould you like to play again? Press 1 for yes, anything else for no"
 
 -- Functions for Blackjack
+
+cardValues :: Card -> [Int]
+cardValues Ace   = [1, 11]
+cardValues Two   = [2]
+cardValues Three = [3]
+cardValues Four  = [4]
+cardValues Five  = [5]
+cardValues Six   = [6]
+cardValues Seven = [7]
+cardValues Eight = [8]
+cardValues Nine  = [9]
+cardValues _     = [10]
 
 data Score = Value Int | Blackjack | Bust deriving (Show, Ord, Eq)
 
@@ -128,4 +141,10 @@ hit :: Hand -> Deck -> (Hand, Deck)
 hit hand deck = (newHand, newDeck) where
   newHand = hand ++ [head deck]
   newDeck = drop 1 deck
+
+possibleHandTotals :: Hand -> [Int] -> [Int] -- Value of an ace can vary depending on total value of hand at the time.
+possibleHandTotals [] totals = sort $ nub totals
+possibleHandTotals (card:cards) totals =
+  possibleHandTotals cards newTotals
+  where newTotals = [total + value | total <- totals, value <- cardValues card]
 
