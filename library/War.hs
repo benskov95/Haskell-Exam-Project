@@ -64,6 +64,11 @@ startRound ((pDeck, pSideDeck), (eDeck, eSideDeck)) = do
 -- Need cards from the round the war started in the total, otherwise cards go missing.
 war :: (PlayerDecks, PlayerDecks) -> LastRoundCards -> IO ()
 war ((pDeck, pSideDeck), (eDeck, eSideDeck)) lastRoundCards = do
+  putStrLn "\nPress any key to start the war."
+  _ <- getLine -- For pacing. The program just runs until the end immediately otherwise.
+
+  canDoWar ((pDeck, pSideDeck), (eDeck, eSideDeck))
+
   let ((pDeck', pSideDeck'), (eDeck', eSideDeck')) = checkIfUseSideDeck ((pDeck, pSideDeck), (eDeck, eSideDeck))
   let (pCards, pDeck'') = drawCards 4 pDeck'
   let (eCards, eDeck'') = drawCards 4 eDeck'
@@ -73,7 +78,6 @@ war ((pDeck, pSideDeck), (eDeck, eSideDeck)) lastRoundCards = do
   let warResult = compareCardValues (pVisibleCard, eVisibleCard)
   let allCardsOnTable = (pCards ++ eCards ++ lastRoundCards)
 
-  warOutcome ((pDeck'', pSideDeck'), (eDeck'', eSideDeck'))
   getStatus ((pDeck'', pSideDeck'), (eDeck'', eSideDeck')) (pVisibleCard, eVisibleCard)
 
   if warResult == Player then do
@@ -90,6 +94,11 @@ war ((pDeck, pSideDeck), (eDeck, eSideDeck)) lastRoundCards = do
 
 continuedWar :: (PlayerDecks, PlayerDecks) -> WonCards -> IO ()
 continuedWar ((pDeck, pSideDeck), (eDeck, eSideDeck)) cardsFromWar = do
+  putStrLn "\nPress any key to continue the war."
+  _ <- getLine -- For pacing. The program just runs until the end immediately otherwise.
+
+  canDoWar ((pDeck, pSideDeck), (eDeck, eSideDeck))
+
   let ((pDeck', pSideDeck'), (eDeck', eSideDeck')) = checkIfUseSideDeck ((pDeck, pSideDeck), (eDeck, eSideDeck))
   let (pCards', pDeck'') = drawCards 4 pDeck'
   let (eCards', eDeck'') = drawCards 4 eDeck'
@@ -99,7 +108,6 @@ continuedWar ((pDeck, pSideDeck), (eDeck, eSideDeck)) cardsFromWar = do
   let currentCardsOnTable = (cardsFromWar ++ pCards' ++ eCards')
   let warResult = compareCardValues (pVisibleCard, eVisibleCard)
 
-  warOutcome ((pDeck'', pSideDeck'), (eDeck'', eSideDeck'))
   getStatus ((pDeck'', pSideDeck'), (eDeck'', eSideDeck')) (pVisibleCard, eVisibleCard)
 
   if warResult == Player then do
@@ -155,17 +163,19 @@ nextGame ((pDeck, pSideDeck), (eDeck, eSideDeck))
     let (pSideDeckNew, eSideDeckNew) = emptyDecks
     let pCombinedDeck = pDeck ++ pSideDeck
     let eCombinedDeck = eDeck ++ eSideDeck
-    startRound ((pCombinedDeck, pSideDeckNew), (eCombinedDeck, eSideDeckNew))
+    pShuffled <- shuffleCards [] pCombinedDeck
+    eShuffled <- shuffleCards [] eCombinedDeck
+    startRound ((pShuffled, pSideDeckNew), (eShuffled, eSideDeckNew))
 
-warOutcome :: (PlayerDecks, PlayerDecks) -> IO ()
-warOutcome ((pDeck, pSideDeck), (eDeck, eSideDeck))
-  | length (pDeck ++ pSideDeck) == 0 = do
+canDoWar :: (PlayerDecks, PlayerDecks) -> IO ()
+canDoWar ((pDeck, pSideDeck), (eDeck, eSideDeck))
+  | length (pDeck ++ pSideDeck) < 4 = do
       putStrLn "\nYou ran out of cards during the war and lost. Better luck next time."
       exitSuccess
-  | length (eDeck ++ eSideDeck) == 0 = do
+  | length (eDeck ++ eSideDeck) < 4 = do
       putStrLn "\nYour opponent ran out of cards during the war, so you won the game. Congratulations!"
       exitSuccess
-  | (((length (pDeck ++ pSideDeck)) == 0) && ((length (eDeck ++ eSideDeck) == 0))) = do
+  | (((length (pDeck ++ pSideDeck)) < 4) && ((length (eDeck ++ eSideDeck) < 4))) = do
       putStrLn "\nTIE! Both you and your opponenent ran out of cards during the war."
       exitSuccess
   | otherwise = return ()
